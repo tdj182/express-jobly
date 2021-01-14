@@ -44,20 +44,61 @@ class Company {
     return company;
   }
 
-  /** Find all companies.
+  /** Find all companies with or without a filter.
    *
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  static async findAll() {
-    const companiesRes = await db.query(
-          `SELECT handle,
-                  name,
-                  description,
-                  num_employees AS "numEmployees",
-                  logo_url AS "logoUrl"
-           FROM companies
-           ORDER BY name`);
+  static async findAll(optionalFilters={}) {
+    let whereClause = []
+    let queryVals = []
+    let { minEmployees, maxEmployees, name } = optionalFilters;
+    let selectQuery = `
+            SELECT handle,
+              name,
+              description,
+              num_employees AS "numEmployees",
+              logo_url AS "logoUrl"
+            FROM companies`;
+
+    // console.log("query")
+    // console.log(selectQuery)
+    // console.log("optional")
+    // console.log(optionalFilters)
+
+    if (minEmployees > maxEmployees) {
+      throw new BadRequestError("Max employees must be > than min employees");
+    }
+
+    if(minEmployees) {
+      queryVals.push(minEmployees)
+      whereClause.push(`num_employees >= $${queryVals.length}`)
+    }
+
+    if(maxEmployees) {
+      queryVals.push(maxEmployees)
+      whereClause.push(`num_employees <= $${queryVals.length}`)
+    }
+
+    if (name) {
+      queryVals.push(`%${name}%`)
+      whereClause.push(`name ILIKE $${queryVals.length}`);
+    }
+
+    if (whereClause.length > 0) {
+      selectQuery += " WHERE " + whereClause.join(" AND ");
+    }
+
+    selectQuery += " ORDER BY name";
+    const companiesRes = await db.query(selectQuery, queryVals)
+    // const companiesRes = await db.query(
+    //       `SELECT handle,
+    //               name,
+    //               description,
+    //               num_employees AS "numEmployees",
+    //               logo_url AS "logoUrl"
+    //        FROM companies
+    //        ORDER BY name`);
     return companiesRes.rows;
   }
 

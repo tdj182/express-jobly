@@ -85,6 +85,27 @@ describe("findAll", function () {
       },
     ]);
   });
+
+  test("works with filter", async function () {
+    let query = { minEmployees: 1, maxEmployees: 2, name: 'C' }
+    let companies = await Company.findAll(query);
+    expect(companies).toEqual([
+      {
+        handle: "c1",
+        name: "C1",
+        description: "Desc1",
+        numEmployees: 1,
+        logoUrl: "http://c1.img",
+      },
+      {
+        handle: "c2",
+        name: "C2",
+        description: "Desc2",
+        numEmployees: 2,
+        logoUrl: "http://c2.img",
+      }
+    ]);
+  })
 });
 
 /************************************** get */
