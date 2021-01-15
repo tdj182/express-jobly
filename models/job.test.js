@@ -45,6 +45,7 @@ describe("findAll", function () {
       title: "j1",
       salary: 100,
       equity: "0",
+      name: "C1",
       companyHandle: "c1"
     },
     {
@@ -52,6 +53,7 @@ describe("findAll", function () {
       title: "j2",
       salary: 200,
       equity: "0.1",
+      name: "C2",
       companyHandle: "c2"
     },
     {
@@ -59,6 +61,7 @@ describe("findAll", function () {
       title: "j3",
       salary: 300,
       equity: "0.2",
+      name: "C3",
       companyHandle: "c3"
     },
     ])

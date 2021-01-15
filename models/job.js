@@ -19,7 +19,7 @@ class Job {
       `INSERT INTO jobs
       (title, salary, equity, company_handle)
       VALUES ($1, $2, $3, $4)
-      RETURNING title, salary, equity, company_handle AS "companyHandle"`,
+      RETURNING id, title, salary, equity, company_handle AS "companyHandle"`,
       [title, salary, equity, companyHandle]
     )
     
@@ -34,8 +34,46 @@ class Job {
    * */
   static async findAll(optionalFilters={}) {
 
-    const jobsRes = await db.query(`
-      SELECT id, title, salary, equity, company_handle AS "companyHandle" FROM jobs`)
+    // const jobsRes = await db.query(`
+    //   SELECT id, title, salary, equity, company_handle AS "companyHandle" FROM jobs`)
+
+      
+    let whereClause = []
+    let queryVals = []
+    let { title, minSalary, hasEquity } = optionalFilters;
+
+    let selectQuery = `
+      SELECT id,
+            title, 
+            salary, 
+            equity, 
+            company_handle AS "companyHandle",
+            name
+      FROM jobs
+          LEFT JOIN companies 
+          ON companies.handle = jobs.company_handle`;
+
+    if (minSalary) {
+      queryVals.push(minSalary)
+      whereClause.push(`salary >= $${queryVals.length}`)
+    }
+
+    if (hasEquity) {
+      queryVals.push(0)
+      whereClause.push(`equity > $${queryVals.length}`)
+    }
+
+    if (title) {
+      queryVals.push(title)
+      whereClause.push(`title ILIKE $${queryVals.length}`)
+    }
+
+    if (whereClause.length > 0) {
+      selectQuery += " WHERE " + whereClause.join(" AND ");
+    }
+
+    selectQuery += " ORDER BY title";
+    const jobsRes = await db.query(selectQuery, queryVals)
 
     return jobsRes.rows;
   }
@@ -121,35 +159,3 @@ module.exports = Job;
 // );
 
 
-    // let whereClause = []
-    // let queryVals = []
-    // let { title, minSalary, hasEquity } = optionalFilters;
-
-    // let selectQuery = `
-    //   SELECT title, 
-    //     salary, 
-    //     equity, 
-    //     company_handle AS "companyHandle"
-    //   FROM jobs`;
-
-    // if (minSalary) {
-    //   queryVals.push(minSalary)
-    //   whereClause.push(`salary >= $${queryVals.length}`)
-    // }
-
-    // if (hasEquity) {
-    //   queryVals.push(0)
-    //   whereClause.push(`equity > $${queryVals.length}`)
-    // }
-
-    // if (title) {
-    //   queryVals.push(title)
-    //   whereClause.push(`title ILIKE $${queryVals.length}`)
-    // }
-
-    // if (whereClause.length > 0) {
-    //   selectQuery += " WHERE " + whereClause.join(" AND ");
-    // }
-
-    // selectQuery += " ORDER BY title";
-    // const jobsRes = await db.query(selectQuery, queryVals)
