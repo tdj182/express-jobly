@@ -21,7 +21,7 @@ const router = new express.Router();
  *
  * Can provide search filter in query:
  * - minSalary
- * - hasEquity (true returns only jobs with equity > 0, other values ignored)
+ * - hasEquity (will return jobs with equity > 0)
  * - title (will find case-insensitive, partial matches)
 
  * Authorization required: none
@@ -52,6 +52,25 @@ router.get("/", async function (req, res, next) {
   }
 });
 
+
+
+/** GET /[jobId] => { job }
+ *
+ * Returns { id, title, salary, equity, company }
+ *   where company is { handle, name, description, numEmployees, logoUrl }
+ *
+ * Authorization required: none
+ */
+
+router.get("/:id", async function (req, res, next) {
+  try {
+    const job = await Job.get(req.params.id);
+    return res.json({ job });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 /** POST / { job } => { job }
  *
  * job should be { title, salary, equity, companyHandle }
@@ -77,25 +96,8 @@ router.post("/", ensureIsAdmin, async function (req, res, next) {
 });
 
 
-/** GET /[jobId] => { job }
- *
- * Returns { id, title, salary, equity, company }
- *   where company is { handle, name, description, numEmployees, logoUrl }
- *
- * Authorization required: none
- */
 
-router.get("/:id", async function (req, res, next) {
-  try {
-    const job = await Job.get(req.params.id);
-    return res.json({ job });
-  } catch (err) {
-    return next(err);
-  }
-});
-
-
-/** PATCH /[jobId]  { fld1, fld2, ... } => { job }
+/** PATCH /[id]  { fld1, fld2, ... } => { job }
  *
  * Data can include: { title, salary, equity }
  *
@@ -119,7 +121,7 @@ router.patch("/:id", ensureIsAdmin, async function (req, res, next) {
   }
 });
 
-/** DELETE /[handle]  =>  { deleted: id }
+/** DELETE /[id]  =>  { deleted: id }
  *
  * Authorization required: admin
  */
