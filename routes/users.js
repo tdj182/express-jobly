@@ -119,4 +119,20 @@ router.delete("/:username", ensureAdminOrUser, async function (req, res, next) {
 });
 
 
+/** POST /[username]/jobs/[id]
+  * Data must include:
+ *   { username, jobID }
+ *  
+ * Returns { applied: jobId }
+ **/
+
+router.post("/:username/jobs/:id", ensureAdminOrUser, async function (req, res, next) {
+  try {
+    await User.apply(req.params.username, req.params.id);
+    return res.json({ applied: req.params.id });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 module.exports = router;

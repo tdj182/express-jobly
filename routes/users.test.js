@@ -12,7 +12,8 @@ const {
   commonAfterEach,
   commonAfterAll,
   u1Token,
-  u2Token
+  u2Token,
+  jobIDs
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
@@ -287,5 +288,21 @@ describe("DELETE /users/:username", function () {
         .delete(`/users/nope`)
         .set("authorization", `Bearer ${u2Token}`);
     expect(resp.statusCode).toEqual(404);
+  });
+});
+
+
+/************************************** POST /users/:username/jobs/:id */
+describe("PATCH /users/:username/jobs/:id", () => {
+  test("works", async function () {
+    const res = await request(app).post(`/users/u1/jobs/${jobIDs[0]}`)
+          .set("authorization", `Bearer ${u2Token}`);
+    expect(res.body).toEqual({applied: `${jobIDs[0]}`})
+  });
+
+  test("unauth for anon", async function () {
+    const res = await request(app).post(`/users/u2/jobs/${jobIDs[0]}`)
+          .set("authorization", `Bearer ${u1Token}`);
+    expect(res.statusCode).toEqual(401);
   });
 });

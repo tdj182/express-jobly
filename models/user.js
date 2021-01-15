@@ -142,6 +142,7 @@ class User {
     return user;
   }
 
+
   /** Update user data with `data`.
    *
    * This is a "partial update" --- it's fine if data doesn't contain
@@ -203,6 +204,44 @@ class User {
     const user = result.rows[0];
 
     if (!user) throw new NotFoundError(`No user: ${username}`);
+  }
+
+  
+  /** Apply for a job based on the given jobid and username passed
+   * 
+   * checks for both job and user
+   * Will throw error if not found
+   * 
+   * Will proceed to apply to job if both are found
+   **/
+  static async apply(username, jobID){
+    // check for user
+    const userRes = await db.query(
+          `SELECT username FROM users
+           WHERE username = $1`,
+           [username]);
+    
+    const user = userRes.rows[0];
+    if (!user) {
+      throw new NotFoundError(`No user: ${username}`);
+    }
+
+    // check for job
+    const jobRes = await db.query(
+          `SELECT id FROM jobs
+          WHERE id = $1`,
+          [jobID]);
+    
+    const job = jobRes.rows[0];
+    if (!job) {
+      throw new NotFoundError(`No job: ${jobID}`);
+    }
+
+    await db.query(
+           `INSERT INTO applications (username, job_id)
+            VALUES ($1, $2)`,
+            [username, jobID]
+    )
   }
 }
 
